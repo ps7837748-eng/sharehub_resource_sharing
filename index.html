@@ -1,0 +1,129 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>ShareHub – Trusted Resource Sharing</title>
+<style>
+:root{--bg:#f6f7f9;--cd:#fff;--tx:#1b1f24;--mu:#5d6773;--bd:#e1e5ea;--ac:#2457d6;--ok:#17803d;--wa:#a15c00;--er:#c0262d;--okb:#e3f5e9;--wab:#fff1d6;--erb:#fde6e7;--acb:#e5edff;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151a;--cd:#1b2027;--tx:#e8ebef;--mu:#9aa5b1;--bd:#2c343e;--ac:#7aa2ff;--ok:#5fd48a;--wa:#f0b44c;--er:#ff7b82;--okb:#17301f;--wab:#3a2d10;--erb:#3a1a1c;--acb:#1d2a4a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12151a;--cd:#1b2027;--tx:#e8ebef;--mu:#9aa5b1;--bd:#2c343e;--ac:#7aa2ff;--ok:#5fd48a;--wa:#f0b44c;--er:#ff7b82;--okb:#17301f;--wab:#3a2d10;--erb:#3a1a1c;--acb:#1d2a4a;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--cd);border-bottom:1px solid var(--bd);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;z-index:5}
+main{max-width:980px;margin:0 auto;padding:14px}
+h1{font-size:18px;margin:0;flex:1}h2{font-size:16px;margin:16px 0 8px}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.mu{color:var(--mu);font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+input,select,button,textarea{font:inherit;padding:7px 9px;border-radius:7px;border:1px solid var(--bd);background:var(--cd);color:var(--tx);max-width:100%}
+button{cursor:pointer;background:var(--ac);color:#fff;border:0}button.g{background:var(--acb);color:var(--ac)}button.r{background:var(--erb);color:var(--er)}button.o{background:var(--okb);color:var(--ok)}button.w{background:var(--wab);color:var(--wa)}button:disabled{opacity:.5;cursor:not-allowed}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}.tabs button{background:var(--cd);color:var(--tx);border:1px solid var(--bd);white-space:nowrap}.tabs button.on{background:var(--ac);color:#fff}
+.b{padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;background:var(--acb);color:var(--ac)}.b.ok{background:var(--okb);color:var(--ok)}.b.wa{background:var(--wab);color:var(--wa)}.b.er{background:var(--erb);color:var(--er)}
+.why{background:var(--acb);border-radius:7px;padding:6px 9px;margin:6px 0;font-size:13px}
+.f{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}.f input[type=text]{flex:1;min-width:120px}
+.msg{background:var(--erb);color:var(--er);padding:8px 10px;border-radius:8px;margin:8px 0}
+details{margin-top:6px;font-size:13px}.lg{padding:3px 0;border-top:1px dashed var(--bd)}
+.nt{padding:6px 0;border-top:1px solid var(--bd);font-size:13px}.dot{color:var(--ac)}
+</style></head><body>
+<header><h1>🔄 ShareHub <span class="mu">trusted resource sharing</span></h1>
+<label class="mu">Viewing as <select id="who" onchange="cu=this.value;ui.tab=isMgr()?'req':'disc';ui.sel=null;ui.msg=[];render()"></select></label>
+<span id="clk" class="mu"></span><button class="g" onclick="ui.n=!ui.n;render()" id="bell">🔔</button><button class="g" onclick="if(confirm('Reset all demo data?')){S=seed();ui={tab:'disc',q:'',t:'',el:false,sel:null,msg:[],n:false};cu='asha';render()}">Reset</button></header>
+<main><details open class="card"><summary><b>Judge guide: full journey in ~2 minutes</b></summary><ol class="mu">
+<li><b>Meera (owner)</b> → Listings: add a resource with conditions (or use the seeded ones).</li>
+<li><b>Tom (community maker)</b> → Discover → 3D Printer Bay: see eligibility gaps, submit credentials. <b>Meera</b> → Verifications: approve.</li>
+<li><b>Asha</b> or <b>Tom</b> → request a slot. Request the same slot as <b>Ravi’s</b> (tomorrow 10:00) to see the automatic waitlist.</li>
+<li><b>Meera</b> → Requests: approve / waitlist / reject with a reason; competing requests are ranked by fair-use priority.</li>
+<li>Requester → My bookings: ⏩ jump to start, check in with condition, return as “Damaged”, or ⏩ pass the end time for an overdue flag.</li>
+<li>Owner → confirm return, resolve incidents. Every step appears in each booking’s <i>History</i> and the Audit tab.</li></ol></details>
+<div id="app"></div></main>
+<script>
+const H=3600e3,B=new Date(2026,9,29).getTime(),fmt=h=>new Date(B+h*H).toLocaleString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),tm=h=>fmt(h).slice(-5);
+const CR={id:'Institution ID',tdp:'3D-printer safety training',elec:'Electronics lab induction'},RK={Good:0,'Minor wear':1,Damaged:2},ACT=['approved','checked_in'],USED=['requested','approved','checked_in','returned','closed'];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function seed(){return{now:9,nid:10,users:[
+{id:'asha',name:'Asha Rao',role:'user',org:'Student',cr:{id:'ok'}},
+{id:'ravi',name:'Ravi Kumar',role:'user',org:'Researcher',cr:{id:'ok',tdp:'ok',elec:'ok'}},
+{id:'tom',name:'Tom Das',role:'user',org:'Community maker',cr:{id:'pending'}},
+{id:'meera',name:'Meera Iyer (Owner, FabLab)',role:'owner',cr:{}},
+{id:'sen',name:'Dr. Sen (Owner, Physics)',role:'owner',cr:{}},
+{id:'admin',name:'Priya (Administrator)',role:'admin',cr:{}}],
+res:[{id:'r1',name:'3D Printer Bay (4 printers)',type:'Fabrication',loc:'FabLab, Block C',owner:'meera',req:['id','tdp'],dep:500,max:4,cap:8,rules:'Supervisor on site. No unattended prints. Clean the bed after use.'},
+{id:'r2',name:'Oscilloscope & Test Bench',type:'Testing',loc:'Physics Lab 2',owner:'sen',req:['id','elec'],dep:0,max:3,cap:6,rules:'Use supplied probes only. Report any damaged leads.'},
+{id:'r3',name:'Seminar Room B',type:'Space',loc:'Library, 2nd floor',owner:'sen',req:['id'],dep:0,max:2,cap:6,rules:'Leave room reset. No food near the AV desk.'},
+{id:'r4',name:'DSLR & Lighting Kit',type:'Equipment',loc:'FabLab Store',owner:'meera',req:['id'],dep:2000,max:6,cap:12,rules:'Return with batteries charged. Lens caps on.'}],
+bk:[{id:'b1',r:'r1',u:'ravi',s:34,d:2,p:'Print enclosure prototype',st:'approved',why:'Approved by Meera Iyer: all requirements verified.',cin:null,cout:null,od:false}],
+log:[{t:9,who:'Meera Iyer (Owner, FabLab)',a:'Approved',b:'b1',r:'r1',d:'All requirements verified.'}],notes:[],inc:[]}}
+let S=seed(),cu='asha',ui={tab:'disc',q:'',t:'',el:false,sel:null,msg:[],n:false};
+const U=i=>S.users.find(x=>x.id==i),R=i=>S.res.find(x=>x.id==i),$=i=>document.getElementById(i),val=i=>($(i)||{}).value||'';
+const isMgr=()=>U(cu).role!='user',canMgr=r=>U(cu).role=='admin'||r.owner==cu,uname=i=>U(i).name.split(' (')[0];
+const lg=(b,a,d,who)=>S.log.push({t:S.now,who:who||uname(cu),a,b:b.id,r:b.r,d:d||''}),nt=(u,txt)=>S.notes.push({u,t:S.now,txt,rd:false});
+const prio=(u,r)=>S.bk.filter(b=>b.u==u&&b.r==r&&['approved','checked_in','returned','closed'].includes(b.st)&&b.s>S.now-720).reduce((a,b)=>a+b.d,0);
+const conf=(r,s,e,ex)=>S.bk.some(b=>b.r==r&&b.id!=ex&&ACT.includes(b.st)&&b.s<e&&s<b.s+b.d);
+const elig=(u,r)=>r.req.map(c=>({c,s:u.cr[c]=='ok'?'ok':u.cr[c]=='pending'?'pending':'missing'}));
+function sweep(){S.bk.forEach(b=>{if(b.st=='checked_in'&&!b.od&&S.now>b.s+b.d){b.od=true;const r=R(b.r);lg(b,'Overdue flagged','Not returned by '+tm(b.s+b.d),'System');nt(b.u,'Overdue: please return '+r.name+' now.');nt(r.owner,'Overdue return: '+uname(b.u)+' / '+r.name);S.inc.push({id:'i'+S.nid++,b:b.id,type:'Delay',by:'System',txt:'Not returned by the booked end time.',st:'open'})}})}
+function bdg(st){const m={requested:'wa',waitlisted:'wa',approved:'ok',checked_in:'',returned:'',closed:'ok',rejected:'er',cancelled:'er'};return`<span class="b ${m[st]||''}">${st.replace('_','-')}</span>`}
+function reg(){$('who').innerHTML=S.users.map(u=>`<option value="${u.id}" ${u.id==cu?'selected':''}>${esc(u.name)}</option>`).join('')}
+function render(){sweep();reg();$('clk').textContent='Demo clock: '+fmt(S.now);const un=S.notes.filter(n=>n.u==cu&&!n.rd).length;$('bell').textContent='🔔'+(un?' '+un:'');
+const tabs=isMgr()?[['req','Requests'],['lst','Listings'],['ver','Verifications'],['inc','Incidents'],['aud','Audit log']]:[['disc','Discover'],['mine','My bookings']];
+let h=`<div class="tabs">${tabs.map(t=>`<button class="${ui.tab==t[0]?'on':''}" onclick="ui.tab='${t[0]}';ui.sel=null;ui.msg=[];render()">${t[1]}</button>`).join('')}</div>`;
+if(ui.n){h+=`<div class="card"><b>Notifications</b>${S.notes.filter(n=>n.u==cu).reverse().map(n=>`<div class="nt">${n.rd?'':'<span class="dot">● </span>'}<span class="mu">${fmt(n.t)}</span> ${esc(n.txt)}</div>`).join('')||'<div class="mu">None yet.</div>'}</div>`;S.notes.forEach(n=>{if(n.u==cu)n.rd=true})}
+h+=({disc:vDisc,mine:vMine,req:vReq,lst:vLst,ver:vVer,inc:vInc,aud:vAud})[ui.tab]();$('app').innerHTML=h;if(ui.tab=='disc')list()}
+/* ---------- user views ---------- */
+function vDisc(){const ty=[...new Set(S.res.map(r=>r.type))];return`<div class="f"><input id="q" type="text" placeholder="Search: 3D print, camera, room…" value="${esc(ui.q)}" oninput="ui.q=this.value;list()"><select onchange="ui.t=this.value;list()"><option value="">All types</option>${ty.map(t=>`<option ${ui.t==t?'selected':''}>${t}</option>`).join('')}</select><label><input type="checkbox" ${ui.el?'checked':''} onchange="ui.el=this.checked;list()"> Only what I qualify for</label></div><div id="list" class="grid" style="margin-top:10px"></div><div id="det"></div>`}
+function chip(x){const c={ok:'ok',pending:'wa',missing:'er'}[x.s];return`<span class="b ${c}">${x.s=='ok'?'✓':x.s=='pending'?'⏳':'✗'} ${CR[x.c]}</span> `}
+function list(){const u=U(cu),q=ui.q.toLowerCase(),rs=S.res.filter(r=>(!q||(r.name+r.type+r.loc+r.rules).toLowerCase().includes(q))&&(!ui.t||r.type==ui.t)&&(!ui.el||elig(u,r).every(x=>x.s=='ok')));
+$('list').innerHTML=rs.map(r=>`<div class="card"><div class="row"><b>${esc(r.name)}</b><span class="b">${r.type}</span></div><div class="mu">📍 ${esc(r.loc)} · Owner ${esc(uname(r.owner))}<br>Open 09:00–18:00 · max ${r.max}h/booking · ${r.cap}h/week cap${r.dep?' · deposit ₹'+r.dep:''}</div><div style="margin:6px 0">${elig(u,r).map(chip).join('')}</div><div class="mu">${esc(r.rules)}</div><div class="f"><button onclick="ui.sel='${r.id}';ui.msg=[];render();$('det').scrollIntoView()">Check &amp; request</button></div></div>`).join('')||'<div class="mu">No matching resources.</div>';
+const r=ui.sel&&R(ui.sel);if(!r){$('det').innerHTML='';return}
+const el=elig(u,r),ok=el.every(x=>x.s=='ok'),d0=Math.floor(S.now/24);
+$('det').innerHTML=`<div class="card" style="border-color:var(--ac)"><b>Request: ${esc(r.name)}</b><h2>1. Eligibility</h2>${el.map(x=>`<div>${chip(x)} ${x.s=='missing'?`<button class="g" onclick="subCr('${x.c}')">Submit credential</button>`:x.s=='pending'?'<span class="mu">awaiting verification by owner</span>':''}</div>`).join('')}
+<h2>2. Slot</h2>${ui.msg.map(m=>`<div class="msg">${esc(m)}</div>`).join('')}<div class="f"><select id="day">${[0,1,2,3,4,5,6].map(i=>`<option value="${d0+i}" ${i==1?'selected':''}>${fmt((d0+i)*24).slice(0,-6)}</option>`).join('')}</select><select id="hr">${[9,10,11,12,13,14,15,16,17].map(h=>`<option value="${h}" ${h==10?'selected':''}>${h}:00</option>`).join('')}</select><select id="dur">${Array.from({length:r.max},(_,i)=>`<option value="${i+1}" ${i==1?'selected':''}>${i+1} h</option>`).join('')}</select><input id="purp" type="text" placeholder="Purpose of use"></div>
+<div class="mu" style="margin-top:6px">Your recent usage here: ${prio(cu,r.id)}h (30 days). Lower usage gets higher priority when requests compete.</div><div class="f"><button ${ok?'':'disabled'} onclick="book('${r.id}')">Submit request</button>${ok?'':'<span class="mu">Complete verification to request.</span>'}</div></div>`}
+function subCr(c){U(cu).cr[c]='pending';S.res.filter(r=>r.req.includes(c)).forEach(r=>nt(r.owner,uname(cu)+' submitted '+CR[c]+' for verification.'));ui.msg=[];render()}
+function book(rid){const r=R(rid),s=+val('day')*24+ +val('hr'),d=+val('dur'),p=val('purp').trim(),e=[];
+if(!p)e.push('Please state the purpose of use.');if(s<S.now)e.push('That start time has already passed.');if(s%24+d>18)e.push('Bookings must end by 18:00.');
+const used=S.bk.filter(b=>b.u==cu&&b.r==rid&&USED.includes(b.st)&&Math.abs(b.s-s)<168).reduce((a,b)=>a+b.d,0);if(used+d>r.cap)e.push(`Fair-use limit: you already hold ${used}h within a week of this slot; the cap is ${r.cap}h.`);
+if(e.length){ui.msg=e;return render()}
+const c=conf(rid,s,s+d),pos=S.bk.filter(b=>b.r==rid&&b.st=='waitlisted'&&b.s<s+d&&s<b.s+b.d).length+1;
+const b={id:'b'+S.nid++,r:rid,u:cu,s,d,p,st:c?'waitlisted':'requested',why:c?`Auto-waitlisted: the slot is already approved to another user. You are #${pos} on the waitlist and will be re-reviewed if it frees up.`:'Eligibility auto-verified. Awaiting owner review.',cin:null,cout:null,od:false};
+S.bk.push(b);lg(b,c?'Waitlisted (conflict)':'Requested',p+' · '+fmt(s)+' for '+d+'h');nt(r.owner,uname(cu)+' requested '+r.name+' on '+fmt(s)+'.');ui.sel=null;ui.tab='mine';ui.msg=[];render()}
+function vMine(){const bs=S.bk.filter(b=>b.u==cu).reverse();return bs.map(card).join('')||'<div class="mu">No bookings yet. Go to Discover.</div>'}
+/* ---------- booking card ---------- */
+function card(b){const r=R(b.r),own=b.u==cu,m=canMgr(r),ins=S.inc.filter(i=>i.b==b.id);
+let h=`<div class="card"><div class="row"><b>${esc(r.name)}</b><span>${bdg(b.st)} ${b.od?'<span class="b er">overdue</span>':''}</span></div><div class="mu">${esc(uname(b.u))} · ${fmt(b.s)}–${tm(b.s+b.d)} (${b.d}h) · “${esc(b.p)}”</div><div class="why">${esc(b.why)}</div>`;
+if(b.cin)h+=`<div class="mu">Check-in condition: <b>${b.cin.c}</b> ${esc(b.cin.n)}</div>`;if(b.cout)h+=`<div class="mu">Return condition: <b>${b.cout.c}</b> ${esc(b.cout.n)}</div>`;
+ins.forEach(i=>h+=`<div class="msg" style="${i.st=='open'?'':'background:var(--okb);color:var(--ok)'}">⚠ ${i.type} (${i.st}): ${esc(i.txt)}${i.res?' → Outcome: '+esc(i.res):''}</div>`);
+const cond=id=>`<select id="c${id}"><option>Good</option><option>Minor wear</option><option>Damaged</option></select><input id="n${id}" type="text" placeholder="Condition notes">`;
+if(own){if(['requested','waitlisted','approved'].includes(b.st))h+=`<div class="f"><button class="r" onclick="cancel('${b.id}')">Cancel booking</button></div>`;
+if(b.st=='approved')h+=`<div class="f">${S.now>=b.s-1?`${cond(b.id)}<button onclick="chk('${b.id}')">Check in</button>`:`<span class="mu">Check-in opens 1h before start.</span><button class="g" onclick="S.now=${b.s};render()">⏩ Demo: jump to start</button>`}</div>`;
+if(b.st=='checked_in')h+=`<div class="f">${cond('r'+b.id)}<button onclick="ret('${b.id}')">Return &amp; record condition</button></div><div class="f"><button class="g" onclick="ext('${b.id}')">Extend +1h</button>${b.od?'':`<button class="g" onclick="S.now=${b.s+b.d+1};render()">⏩ Demo: pass end time</button>`}</div>`}
+if(m&&b.st=='requested'){const cmp=S.bk.filter(x=>x.r==b.r&&x.id!=b.id&&x.st=='requested'&&x.s<b.s+b.d&&b.s<x.s+x.d);h+=`<div class="mu">Fair-use priority: <b>${prio(b.u,b.r)}h</b> used in 30 days (lower = higher priority) · ${cmp.length} competing request(s)${cmp.length?': '+cmp.map(x=>uname(x.u)+' ('+prio(x.u,x.r)+'h)').join(', '):''}</div><div class="f"><select id="s${b.id}"><option value="">Reason (optional if approving)</option><option>Qualification insufficient</option><option>Maintenance / unavailable</option><option>Purpose not suitable</option><option>Fair-use limit</option><option>Higher-priority user</option></select><input id="t${b.id}" type="text" placeholder="Note to requester"></div><div class="f"><button class="o" onclick="dec('${b.id}','approve')">Approve</button><button class="w" onclick="dec('${b.id}','wait')">Waitlist</button><button class="r" onclick="dec('${b.id}','reject')">Reject</button></div>`}
+if(m&&b.st=='waitlisted')h+=`<div class="f"><button class="o" onclick="dec('${b.id}','approve')">Approve if free</button><button class="r" onclick="dec('${b.id}','reject')">Reject</button></div>`;
+if(m&&b.st=='returned')h+=`<div class="f"><button class="o" onclick="closeB('${b.id}')">Confirm return received</button></div>`;
+if(m&&b.st=='approved'&&!own)h+=`<div class="f"><button class="r" onclick="cancel('${b.id}')">Revoke approval</button></div>`;
+if(['approved','checked_in','returned','closed'].includes(b.st)&&(own||m))h+=`<div class="f"><input id="x${b.id}" type="text" placeholder="Describe damage / delay / incident"><button class="w" onclick="rep('${b.id}')">Report incident</button></div>`;
+const lgs=S.log.filter(l=>l.b==b.id);return h+`<details><summary>History (${lgs.length})</summary>${lgs.map(l=>`<div class="lg"><span class="mu">${fmt(l.t)}</span> <b>${esc(l.a)}</b> by ${esc(l.who)}${l.d?' – '+esc(l.d):''}</div>`).join('')}</details></div>`}
+const B_=id=>S.bk.find(b=>b.id==id);
+function dec(id,t){const b=B_(id),r=R(b.r),rs=val('s'+id),tx=val('t'+id),rsn=[rs,tx].filter(Boolean).join(' – ');
+if(t=='reject'){if(!rsn)return alert('A reason is required to reject, so the requester understands the decision.');b.st='rejected';b.why='Rejected by '+uname(cu)+': '+rsn;lg(b,'Rejected',rsn);nt(b.u,'Your request for '+r.name+' was rejected: '+rsn)}
+else if(t=='wait'){b.st='waitlisted';b.why='Waitlisted by '+uname(cu)+(rsn?': '+rsn:'. Will be reviewed if capacity frees up.');lg(b,'Waitlisted',rsn);nt(b.u,'You were waitlisted for '+r.name+'.')}
+else{if(conf(b.r,b.s,b.s+b.d,b.id)){b.st='waitlisted';b.why='Waitlisted automatically: the slot was taken before approval.';lg(b,'Waitlisted (conflict)','Slot taken','System');alert('That slot is already booked. Request moved to the waitlist.');return render()}
+b.st='approved';b.why='Approved by '+uname(cu)+(rsn?': '+rsn:': all requirements verified.');lg(b,'Approved',rsn);nt(b.u,'Approved: '+r.name+' on '+fmt(b.s)+'.');
+S.bk.filter(x=>x.r==b.r&&x.id!=b.id&&['requested'].includes(x.st)&&x.s<b.s+b.d&&b.s<x.s+x.d).forEach(x=>{const a=prio(b.u,b.r),c=prio(x.u,x.r);x.st='waitlisted';x.why=`Waitlisted: a competing request for this slot was approved (${a<=c?`requester had lower recent usage: ${a}h vs your ${c}h`:'owner discretion'}). You will be re-reviewed if it is cancelled.`;lg(x,'Waitlisted (competing request approved)',a+'h vs '+c+'h','System');nt(x.u,'Your request for '+r.name+' was waitlisted: a competing request was approved.')})}
+render()}
+function cancel(id){const b=B_(id),r=R(b.r),late=b.st=='approved'&&b.s-S.now<2;b.st='cancelled';b.why='Cancelled by '+uname(cu)+(late?' (late cancellation, under 2h notice, recorded)':'.');lg(b,'Cancelled',late?'Late cancellation':'');if(cu!=b.u)nt(b.u,'Your booking for '+r.name+' was cancelled by the owner.');else nt(r.owner,uname(b.u)+' cancelled '+r.name+'.');
+const nx=S.bk.filter(x=>x.r==b.r&&x.st=='waitlisted'&&x.s<b.s+b.d&&b.s<x.s+x.d&&!conf(x.r,x.s,x.s+x.d,x.id)).sort((a,c)=>prio(a.u,a.r)-prio(c.u,c.r)||a.id.localeCompare(c.id))[0];
+if(nx){nx.st='requested';nx.why='Slot freed. Moved from the waitlist back to owner review (fair-use priority order).';lg(nx,'Promoted from waitlist','Slot freed','System');nt(nx.u,'A slot opened for '+r.name+'. Your request is back in review.');nt(r.owner,'Waitlisted request promoted for '+r.name+'.')}render()}
+function chk(id){const b=B_(id);b.cin={c:val('c'+id),n:val('n'+id)};b.st='checked_in';b.why='Checked in at '+fmt(S.now)+'. Return by '+tm(b.s+b.d)+'.';lg(b,'Checked in','Condition: '+b.cin.c+' '+b.cin.n);nt(R(b.r).owner,uname(b.u)+' checked in to '+R(b.r).name+'.');render()}
+function ret(id){const b=B_(id),k='r'+id;b.cout={c:val('c'+k),n:val('n'+k)};const late=S.now>b.s+b.d;b.st='returned';b.why='Returned at '+fmt(S.now)+(late?' (late)':'')+'. Awaiting owner confirmation.';lg(b,'Returned','Condition: '+b.cout.c+' '+b.cout.n);
+if(RK[b.cout.c]>RK[b.cin.c]){S.inc.push({id:'i'+S.nid++,b:b.id,type:'Damage / condition change',by:'System',txt:`Condition changed from ${b.cin.c} to ${b.cout.c}. ${b.cout.n}`,st:'open'});lg(b,'Incident auto-recorded','Condition worsened','System');nt(R(b.r).owner,'Condition worsened on return: '+R(b.r).name+'. Review needed.')}
+if(late&&!b.od)S.inc.push({id:'i'+S.nid++,b:b.id,type:'Delay',by:'System',txt:'Returned after the booked end time.',st:'open'});nt(R(b.r).owner,uname(b.u)+' returned '+R(b.r).name+'. Please confirm.');render()}
+function closeB(id){const b=B_(id);b.st='closed';b.why='Return confirmed by '+uname(cu)+'. Transaction complete.';lg(b,'Return confirmed');nt(b.u,'Return of '+R(b.r).name+' confirmed. Thank you!');render()}
+function ext(id){const b=B_(id),r=R(b.r);if(b.d+1>r.max+2||b.s%24+b.d+1>18||conf(b.r,b.s,b.s+b.d+1,id))return alert('Cannot extend: the next slot is booked, it passes closing time, or it exceeds the limit.');b.d++;b.od=false;lg(b,'Extended','+1h, now ends '+tm(b.s+b.d));nt(r.owner,uname(b.u)+' extended '+r.name+' by 1h.');render()}
+function rep(id){const b=B_(id),t=val('x'+id).trim();if(!t)return alert('Please describe the incident.');S.inc.push({id:'i'+S.nid++,b:id,type:'Reported incident',by:uname(cu),txt:t,st:'open'});lg(b,'Incident reported',t);nt(cu==b.u?R(b.r).owner:b.u,'An incident was reported on '+R(b.r).name+'.');render()}
+/* ---------- owner/admin views ---------- */
+const mine=()=>S.res.filter(canMgr).map(r=>r.id);
+function vReq(){const o={requested:0,waitlisted:1,returned:2,checked_in:3,approved:4},bs=S.bk.filter(b=>mine().includes(b.r)).sort((a,b)=>(o[a.st]??9)-(o[b.st]??9)||a.s-b.s);return`<div class="mu">Humans decide: the system flags conflicts and fair-use priority but never approves on its own.</div>`+(bs.map(card).join('')||'<div class="mu">No requests yet.</div>')}
+function vLst(){return S.res.filter(canMgr).map(r=>`<div class="card"><b>${esc(r.name)}</b> <span class="b">${r.type}</span><div class="mu">📍 ${esc(r.loc)} · requires ${r.req.map(c=>CR[c]).join(', ')} · ${r.max}h max · ${r.cap}h/week cap · deposit ₹${r.dep}<br>${esc(r.rules)}</div></div>`).join('')+`<div class="card"><b>List a new resource</b><div class="f"><input id="nn" type="text" placeholder="Name"><select id="nt"><option>Space</option><option>Equipment</option><option>Fabrication</option><option>Testing</option></select><input id="nl" type="text" placeholder="Location"></div><div class="f">${Object.keys(CR).map(c=>`<label><input type="checkbox" class="rq" value="${c}" ${c=='id'?'checked':''}> ${CR[c]}</label>`).join(' ')}</div><div class="f"><input id="nd" type="number" min="0" placeholder="Deposit ₹" style="width:110px"><input id="nm" type="number" min="1" max="8" value="3" style="width:90px" title="Max hours per booking"><input id="nc" type="number" min="1" value="6" style="width:90px" title="Weekly cap hours per user"></div><div class="f"><input id="nr" type="text" placeholder="Usage rules"><button onclick="addRes()">Publish listing</button></div><div class="mu">Fields: deposit, max hours/booking, weekly cap/user.</div></div>`}
+function addRes(){const n=val('nn').trim();if(!n)return alert('Name required.');const r={id:'r'+S.nid++,name:n,type:val('nt'),loc:val('nl')||'—',owner:cu=='admin'?'meera':cu,req:[...document.querySelectorAll('.rq:checked')].map(x=>x.value),dep:+val('nd')||0,max:Math.min(8,+val('nm')||3),cap:+val('nc')||6,rules:val('nr')||'Follow institutional rules.'};S.res.push(r);S.log.push({t:S.now,who:uname(cu),a:'Listed resource',b:'—',r:r.id,d:n});render()}
+function vVer(){const p=S.users.flatMap(u=>Object.entries(u.cr).filter(e=>e[1]=='pending').map(e=>[u,e[0]]));return p.map(([u,c])=>`<div class="card row"><span><b>${esc(u.name)}</b> · ${esc(u.org)}<br><span class="mu">${CR[c]} (document on file: demo-${c}.pdf)</span></span><span class="f"><button class="o" onclick="vf('${u.id}','${c}',1)">Verify</button><button class="r" onclick="vf('${u.id}','${c}',0)">Reject</button></span></div>`).join('')||'<div class="mu">Nothing pending.</div>'}
+function vf(u,c,ok){const x=U(u);if(ok)x.cr[c]='ok';else delete x.cr[c];S.log.push({t:S.now,who:uname(cu),a:ok?'Credential verified':'Credential rejected',b:'—',r:'—',d:x.name+' / '+CR[c]});nt(u,CR[c]+(ok?' verified. You can now request matching resources.':' was rejected. Please resubmit.'));render()}
+function vInc(){return S.inc.filter(i=>mine().includes(B_(i.b).r)).reverse().map(i=>{const b=B_(i.b);return`<div class="card"><div class="row"><b>${i.type}</b><span class="b ${i.st=='open'?'er':'ok'}">${i.st}</span></div><div class="mu">${esc(R(b.r).name)} · ${esc(uname(b.u))} · reported by ${esc(i.by)}</div><div>${esc(i.txt)}</div>${i.res?`<div class="why">Outcome: ${esc(i.res)}</div>`:`<div class="f"><select id="o${i.id}"><option>Dismissed – no action</option><option>Warning issued</option><option>Deposit deducted</option><option>Usage suspended (admin review)</option></select><button onclick="resI('${i.id}')">Resolve</button></div>`}</div>`}).join('')||'<div class="mu">No incidents.</div>'}
+function resI(id){const i=S.inc.find(x=>x.id==id);i.st='resolved';i.res=val('o'+id);const b=B_(i.b);lg(b,'Incident resolved',i.res);nt(b.u,'Incident on '+R(b.r).name+' resolved: '+i.res);render()}
+function vAud(){const ids=mine();return`<div class="card">${[...S.log].reverse().filter(l=>l.r=='—'||ids.includes(l.r)).map(l=>`<div class="lg"><span class="mu">${fmt(l.t)}</span> <b>${esc(l.a)}</b> · ${esc(l.who)}${l.b!='—'?' · '+l.b:''}${l.d?' – '+esc(l.d):''}</div>`).join('')}</div>`}
+render();
+</script></body></html>
